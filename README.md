@@ -75,7 +75,7 @@ OpenAI | Claude | Gemini
 
 
 
-- [ ] \(Optional) Open a followup issue
+- [ ] https://github.com/wadder12/repototxt/issues/1
 
 
 
