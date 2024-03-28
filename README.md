@@ -1,6 +1,16 @@
 ##  RepoRipper
 
-This repository contains a Python script, RepoRipper.py, downloads your whole git repo to a .txt file so you can share it with any AI model (works best with Openai [^1]  and Gemini [^2] )
+This repository contains a Python script, RepoRipper.py, downloads your whole git repo to a .txt file so you can share it with any AI model. 
+
+OpenAI | Claude | Gemini
+
+| MODEL | WEBSITE |
+| --- | --- |
+| OpenAI [^1] | https://openai.com/chatgpt |
+| Claude [^2] | https://claude.ai/ |
+| Gemini [^3] | [dont know why their link so long](https://gemini.google.com/?utm_source=google&utm_medium=cpc&utm_campaign=2024enUS_gemfeb&gad_source=1&gclid=CjwKCAjwh4-wBhB3EiwAeJsppOWzLIcw-EAxub7vOFjZb_hcQoMWw1sPL-BPdHTQ99DZnQtS5NzRnhoC41oQAvD_BwE) |
+
+
 
 > [!CAUTION]
 > Be aware that large repositories may encounter rate limits when using this script due to GitHub API restrictions. This is an inherent limitation and not a fault of the script itself.
@@ -56,13 +66,11 @@ This repository contains a Python script, RepoRipper.py, downloads your whole gi
 * You can modify the `exclusion_list.txt` file to add or remove file types and directories to be excluded by default.
 * You can set the `SAVE_DIRECTORY` environment variable in the `.env` file to specify where the downloaded text file should be saved.
 
-**Note:**
 
-* Make sure your GitHub personal access token has the necessary permissions to access the repository.
-* The script will skip binary or non-UTF-8 files.
-* The script will overwrite any existing file with the same name in the save directory.
-
-
+> [!NOTE]
+>* Make sure your GitHub personal access token` has the necessary permissions to access the repository.
+>* The script will skip binary or non-UTF-8 files.
+>* The script will overwrite any existing file with the same name in the save directory.
 
 
 
@@ -72,6 +80,9 @@ This repository contains a Python script, RepoRipper.py, downloads your whole gi
 
 
 
-[^1]: My reference.
-[^2]: To add line breaks within a footnote, prefix new lines with 2 spaces.
-  This is a second line.
+
+
+
+[^1]: here is the raw link lol https://openai.com/chatgpt
+[^2]: here is the raw link lol https://claude.ai/
+[^3]: here is the raw link lol https://gemini.google.com/?utm_source=google&utm_medium=cpc&utm_campaign=2024enUS_gemfeb&gad_source=1&gclid=CjwKCAjwh4-wBhB3EiwAeJsppOWzLIcw-EAxub7vOFjZb_hcQoMWw1sPL-BPdHTQ99DZnQtS5NzRnhoC41oQAvD_BwE
