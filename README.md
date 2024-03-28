@@ -73,9 +73,14 @@ OpenAI | Claude | Gemini
 >* The script will overwrite any existing file with the same name in the save directory.
 
 
+## TODO
 
-
-- [ ] https://github.com/wadder12/repototxt/issues/1
+- [ ] [#1](https://github.com/wadder12/repototxt/issues/1)
+- [ ] Validate User Inputs
+- [ ] Handle API Rate Limiting
+- [ ] Cross-Platform Testing
+- [ ] Legal and Ethical Considerations
+- [ ] Enhance Binary File Handling
 
 
 
