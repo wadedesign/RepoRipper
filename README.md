@@ -56,16 +56,20 @@ OpenAI | Claude | Gemini
    - Execute the script using:
 
      ```bash
-     python RepoRipper.py
+     python3 reporipper.py https://github.com/yourname/yourrepo
      ```
+2. ** Select an ouput directory:**
+   - Enter -o followed by the path to the directory where you want to save the downloaded text file.
 
-2. **Enter repository URL:**
-   - When prompted, provide the URL of the GitHub repository you want to download from.
+   ```bash
+   python3 reporipper.py https://github.com/yourname/yourrepo -o /path/to/save/directory
+   ```
+3. Custom Exclusions List:
+   - Enter -e followed by the path to the exclusion list file.
 
-3. **Select exclusions (optional):**
-   - The script will display a list of file types and directories that can be excluded.
-   - Enter the corresponding numbers separated by spaces to exclude specific items.
-   - Press Enter to proceed without exclusions.
+   ```bash
+   python3 reporipper.py https://github.com/yourname/yourrepo -e /path/to/exclusion_list.txt
+   ```
 
 4. **Wait for download:**
    - The script will fetch the files and save them to a single text file in the current directory or the specified `SAVE_DIRECTORY` in the `.env` file.

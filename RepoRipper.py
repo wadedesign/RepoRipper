@@ -1,94 +1,157 @@
-import asyncio
 import os
-import requests
 import base64
-from dotenv import load_dotenv
-from utils.rate_limiting import check_rate_limit
-from tqdm import tqdm
+import asyncio
 import time
+import aiohttp
+import aiofiles
+import logging
+import json
+from tqdm.asyncio import tqdm as async_tqdm
+from dotenv import load_dotenv
 from colorama import init, Fore, Style
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import functools
+from argparse import ArgumentParser, Namespace
+from utils.rate_limiting import check_rate_limit, TokenBucket
 from utils import async_io
-
+from functools import wraps
+from typing import Set, Tuple
 
 init()
 load_dotenv()
 
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
-SAVE_DIRECTORY = os.environ.get('SAVE_DIRECTORY', '.')
-headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-with open('exclusion_list.txt', 'r') as f:
-    ALL_EXCLUSION_LIST = [line.strip() for line in f.readlines()]
-    EXCLUSION_SET = set(ALL_EXCLUSION_LIST)
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+SAVE_DIRECTORY = os.getenv('SAVE_DIRECTORY', '.')
+HEADERS = {"Authorization": f"token {GITHUB_TOKEN}"}
+CACHE = {}
+EXCLUSION_SET: Set[str] = set()
 
-def get_repo_files(_repo_full_name_, _exclusion_list_):
-    """Recursively fetch all file paths in a repository, excluding files specified in the exclusion list."""
-    files = []
-    url = f"https://api.github.com/repos/{_repo_full_name_}/git/trees/main?recursive=1"
-    resp = requests.get(url, headers=headers)
-    if resp.status_code == 200:
-        tree = resp.json().get("tree", [])
-        files = [item["path"] for item in tree if item["type"] == "blob" and not any(exclusion in item["path"] for exclusion in _exclusion_list_)]
-    return files
+bucket = TokenBucket(rate=5000, capacity=5000)
 
-def fetch_file_content(_repo_full_name_, path):
-    url = f"https://api.github.com/repos/{_repo_full_name_}/contents/{path}"
-    resp = requests.get(url, headers=headers)
-    if resp.status_code == 200:
-        encoded_content = resp.json()['content']
-        try:
-            decoded_content = base64.b64decode(encoded_content).decode('utf-8')
-            return f"{Fore.GREEN}Path: {path}{Style.RESET_ALL}\n\n{decoded_content}\n\n---\n"
-        except UnicodeDecodeError:
-            print(f"{Fore.RED}Skipping binary or non-UTF-8 file: {path}{Style.RESET_ALL}")
+def cached(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        # Convert sets to lists in args and kwargs to make them JSON serializable
+        serializable_args = tuple(list(arg) if isinstance(arg, set) else arg for arg in args[1:])
+        serializable_kwargs = {k: (list(v) if isinstance(v, set) else v) for k, v in kwargs.items()}
+        
+        key = json.dumps(serializable_args) + json.dumps(serializable_kwargs)
+        if key in CACHE:
+            return CACHE[key]
+        result = await func(*args, **kwargs)
+        CACHE[key] = result
+        return result
+    return wrapper
+
+def load_exclusion_list(filename: str) -> Set[str]:
+    if os.path.exists(filename):
+        with open(filename, 'r') as f:
+            return set(line.strip() for line in f if line.strip())
+    return set()
+
+@cached
+async def fetch_repo_files(session: aiohttp.ClientSession, repo_full_name: str, exclusion_set: Set[str]) -> Set[str]:
+    url = f"https://api.github.com/repos/{repo_full_name}/git/trees/main?recursive=1"
+    async with session.get(url, headers=HEADERS) as response:
+        bucket.consume()
+        if response.status == 200:
+            data = await response.json()
+            return {item["path"] for item in data.get("tree", []) 
+                    if item["type"] == "blob" and not any(exclusion in item["path"] for exclusion in exclusion_set)}
+        elif response.status == 403:
+            reset_time = response.headers.get("X-RateLimit-Reset")
+            if reset_time:
+                reset_time = int(reset_time) - int(time.time())
+                logger.warning(f"Rate limit exceeded. Waiting for {reset_time} seconds.")
+                await asyncio.sleep(reset_time)
+            return await fetch_repo_files(session, repo_full_name, exclusion_set)
+        else:
+            logger.error(f"Failed to fetch repo files for {repo_full_name}. Status: {response.status}")
+    return set()
+
+@cached
+async def fetch_file_content(session: aiohttp.ClientSession, repo_full_name: str, path: str) -> str:
+    url = f"https://api.github.com/repos/{repo_full_name}/contents/{path}"
+    async with session.get(url, headers=HEADERS) as response:
+        bucket.consume()
+        if response.status == 200:
+            try:
+                data = await response.json()
+                encoded_content = data.get('content')
+                return base64.b64decode(encoded_content).decode('utf-8')
+            except UnicodeDecodeError:
+                logger.warning(f"Skipping binary or non-UTF-8 file: {path}")
+        else:
+            logger.error(f"Failed to fetch content for {path}. Status: {response.status}")
     return None
 
-async def fetch_and_save_files(_repo_full_name_, _exclusion_list_):
-    """Fetch files' content from a repo, attempt to decode from Base64, then save it in a single text file."""
-    remaining_requests, reset_time = check_rate_limit(headers)
+async def fetch_and_save_files(repo_full_name: str, exclusion_set: Set[str], concurrency: int = 5):
+    remaining_requests, reset_time = check_rate_limit(HEADERS)
     if remaining_requests < 10:
-        reset_wait_time = reset_time - int(time.time())
-        print(f"Approaching GitHub API rate limit. Waiting for reset in {reset_wait_time} seconds.")
-        time.sleep(max(reset_wait_time, 0) + 1)
+        await asyncio.sleep(max(reset_time - int(time.time()), 0) + 1)
 
-    files = get_repo_files(_repo_full_name_, _exclusion_list_)
+    async with aiohttp.ClientSession() as session:
+        files = await fetch_repo_files(session, repo_full_name, exclusion_set)
 
-    with ThreadPoolExecutor() as executor:
-        fetch_tasks = [executor.submit(fetch_file_content, _repo_full_name_, path) for path in files]
-        contents = [future.result() for future in tqdm(as_completed(fetch_tasks), total=len(files), desc=Fore.YELLOW + "Fetching files" + Style.RESET_ALL, unit="file")]
+        semaphore = asyncio.Semaphore(concurrency)
+        tasks = [fetch_file_content_with_semaphore(session, repo_full_name, path, semaphore) for path in files]
+        contents = await async_tqdm.gather(*tasks, desc=Fore.YELLOW + "Fetching files" + Style.RESET_ALL)
 
-    contents = [content for content in contents if content is not None]
+    contents = [content for content in contents if content]
 
-    repo_name = _repo_full_name_.split('/')[-1]
-    if not os.path.isdir(SAVE_DIRECTORY):
-        os.makedirs(SAVE_DIRECTORY, exist_ok=True)
+    repo_name = repo_full_name.split('/')[-1]
     save_path = os.path.join(SAVE_DIRECTORY, f"{repo_name}.txt")
-
+    os.makedirs(SAVE_DIRECTORY, exist_ok=True)
+    
+    # Asynchronously write the contents to the file
     await async_io.write_files_async(save_path, contents)
+    logger.info(f"All files saved in: {save_path}")
 
-    print(f"{Fore.GREEN}All files saved in: {save_path}{Style.RESET_ALL}")
+async def fetch_file_content_with_semaphore(session, repo_full_name, path, semaphore):
+    async with semaphore:
+        return await fetch_file_content(session, repo_full_name, path)
+
+def parse_arguments() -> Namespace:
+    parser = ArgumentParser(description="Fetch and save all files from a GitHub repository.")
+    parser.add_argument("repo_url", help="The GitHub repository URL")
+    parser.add_argument("-o", "--output", default=SAVE_DIRECTORY, help="The directory to save files to")
+    parser.add_argument("-e", "--exclude", default="exclusion_list.txt", help="File with list of paths to exclude")
+    parser.add_argument("-c", "--concurrency", type=int, default=5, help="Number of concurrent tasks")
+    parser.add_argument("-d", "--dry-run", action="store_true", help="Simulate the process without saving files")
+    return parser.parse_args()
 
 def main():
-    repo_url = input(Fore.YELLOW + "Enter the GitHub repository URL: " + Style.RESET_ALL)
-    repo_full_name = '/'.join(repo_url.split('/')[-2:])
+    args = parse_arguments()
 
-    print("\nSelect the items you want to exclude from the list below (enter the corresponding numbers separated by spaces):")
-    for idx, item in enumerate(ALL_EXCLUSION_LIST, start=1):
-        print(f"{idx}. {item}")
+    global SAVE_DIRECTORY
+    SAVE_DIRECTORY = args.output
 
-    selected_indices = input(Fore.YELLOW + "\nEnter your choices (e.g., 1 3 5): " + Style.RESET_ALL).split()
-    exclusion_list = [ALL_EXCLUSION_LIST[int(idx) - 1] for idx in selected_indices]
+    global EXCLUSION_SET
+    EXCLUSION_SET = load_exclusion_list(args.exclude)
 
-    print(Fore.BLUE + "Fetching files, please wait..." + Style.RESET_ALL)
-    with tqdm(total=100, desc=Fore.BLUE + "Processing", bar_format="{desc}: |{bar}| {percentage:3.0f}%", leave=False) as pbar:
-        for _ in range(100):
-            time.sleep(0.02) 
-            pbar.update(1)
+    repo_full_name = '/'.join(args.repo_url.rstrip('/').split('/')[-2:])
 
-    asyncio.run(fetch_and_save_files(repo_full_name, exclusion_list)), 
-    print(Fore.GREEN + "All operations completed successfully!" + Style.RESET_ALL)
+    if not EXCLUSION_SET:
+        logger.warning("No exclusion list found or it's empty. Skipping exclusion step.")
+        combined_exclusion_set = set()
+    else:
+        exclusion_list = list(EXCLUSION_SET)
+        print("\nSelect the items you want to exclude from the list below (enter the corresponding numbers separated by spaces):")
+        for idx, item in enumerate(exclusion_list, start=1):
+            print(f"{idx}. {item}")
+
+        selected_indices = input(Fore.YELLOW + "\nEnter your choices (e.g., 1 3 5): " + Style.RESET_ALL).split()
+        selected_exclusions = {exclusion_list[int(idx) - 1] for idx in selected_indices}
+
+        combined_exclusion_set = EXCLUSION_SET.union(selected_exclusions)
+
+    if args.dry_run:
+        logger.info("Dry run complete. No files were saved.")
+    else:
+        print(Fore.BLUE + "Fetching files, please wait..." + Style.RESET_ALL)
+        asyncio.run(fetch_and_save_files(repo_full_name, combined_exclusion_set, args.concurrency))
+        print(Fore.GREEN + "All operations completed successfully!" + Style.RESET_ALL)
 
 if __name__ == "__main__":
     main()

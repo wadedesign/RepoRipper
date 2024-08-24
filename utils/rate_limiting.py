@@ -1,6 +1,4 @@
-# utils/rate_limiting.py
 import requests
-from tqdm import tqdm
 import time
 
 def check_rate_limit(headers):
@@ -19,3 +17,24 @@ def update_rate_limit_status(headers, pbar=None):
     remaining_requests, _ = check_rate_limit(headers)
     if pbar:
         pbar.set_postfix(rate_limit=remaining_requests, refresh=True)
+
+class TokenBucket:
+    def __init__(self, rate, capacity):
+        self.rate = rate
+        self.capacity = capacity
+        self.tokens = capacity
+        self.last_refill = time.time()
+
+    def consume(self, tokens=1):
+        self.refill()
+        if self.tokens >= tokens:
+            self.tokens -= tokens
+            return True
+        return False
+
+    def refill(self):
+        now = time.time()
+        elapsed = now - self.last_refill
+        refill_tokens = elapsed * self.rate
+        self.tokens = min(self.capacity, self.tokens + refill_tokens)
+        self.last_refill = now

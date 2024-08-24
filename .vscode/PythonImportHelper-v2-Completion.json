@@ -1,0 +1,304 @@
+[
+    {
+        "label": "asyncio",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "asyncio",
+        "description": "asyncio",
+        "detail": "asyncio",
+        "documentation": {}
+    },
+    {
+        "label": "aiofiles",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "aiofiles",
+        "description": "aiofiles",
+        "detail": "aiofiles",
+        "documentation": {}
+    },
+    {
+        "label": "requests",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "requests",
+        "description": "requests",
+        "detail": "requests",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "base64",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "base64",
+        "description": "base64",
+        "detail": "base64",
+        "documentation": {}
+    },
+    {
+        "label": "aiohttp",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "aiohttp",
+        "description": "aiohttp",
+        "detail": "aiohttp",
+        "documentation": {}
+    },
+    {
+        "label": "logging",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "logging",
+        "description": "logging",
+        "detail": "logging",
+        "documentation": {}
+    },
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "tqdm",
+        "importPath": "tqdm.asyncio",
+        "description": "tqdm.asyncio",
+        "isExtraImport": true,
+        "detail": "tqdm.asyncio",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "init",
+        "importPath": "colorama",
+        "description": "colorama",
+        "isExtraImport": true,
+        "detail": "colorama",
+        "documentation": {}
+    },
+    {
+        "label": "Fore",
+        "importPath": "colorama",
+        "description": "colorama",
+        "isExtraImport": true,
+        "detail": "colorama",
+        "documentation": {}
+    },
+    {
+        "label": "Style",
+        "importPath": "colorama",
+        "description": "colorama",
+        "isExtraImport": true,
+        "detail": "colorama",
+        "documentation": {}
+    },
+    {
+        "label": "ArgumentParser",
+        "importPath": "argparse",
+        "description": "argparse",
+        "isExtraImport": true,
+        "detail": "argparse",
+        "documentation": {}
+    },
+    {
+        "label": "Namespace",
+        "importPath": "argparse",
+        "description": "argparse",
+        "isExtraImport": true,
+        "detail": "argparse",
+        "documentation": {}
+    },
+    {
+        "label": "check_rate_limit",
+        "importPath": "utils.rate_limiting",
+        "description": "utils.rate_limiting",
+        "isExtraImport": true,
+        "detail": "utils.rate_limiting",
+        "documentation": {}
+    },
+    {
+        "label": "TokenBucket",
+        "importPath": "utils.rate_limiting",
+        "description": "utils.rate_limiting",
+        "isExtraImport": true,
+        "detail": "utils.rate_limiting",
+        "documentation": {}
+    },
+    {
+        "label": "async_io",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "wraps",
+        "importPath": "functools",
+        "description": "functools",
+        "isExtraImport": true,
+        "detail": "functools",
+        "documentation": {}
+    },
+    {
+        "label": "Set",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "TokenBucket",
+        "kind": 6,
+        "importPath": "utils.rate_limiting",
+        "description": "utils.rate_limiting",
+        "peekOfCode": "class TokenBucket:\n    def __init__(self, rate, capacity):\n        self.rate = rate\n        self.capacity = capacity\n        self.tokens = capacity\n        self.last_refill = time.time()\n    def consume(self, tokens=1):\n        self.refill()\n        if self.tokens >= tokens:\n            self.tokens -= tokens",
+        "detail": "utils.rate_limiting",
+        "documentation": {}
+    },
+    {
+        "label": "check_rate_limit",
+        "kind": 2,
+        "importPath": "utils.rate_limiting",
+        "description": "utils.rate_limiting",
+        "peekOfCode": "def check_rate_limit(headers):\n    \"\"\"Checks the remaining GitHub API rate limit and returns it.\"\"\"\n    rate_limit_url = \"https://api.github.com/rate_limit\"\n    response = requests.get(rate_limit_url, headers=headers)\n    rate_limit_data = response.json()\n    remaining_requests = rate_limit_data['rate']['remaining']\n    reset_time = rate_limit_data['rate']['reset']\n    return remaining_requests, reset_time\ndef update_rate_limit_status(headers, pbar=None):\n    remaining_requests, _ = check_rate_limit(headers)",
+        "detail": "utils.rate_limiting",
+        "documentation": {}
+    },
+    {
+        "label": "update_rate_limit_status",
+        "kind": 2,
+        "importPath": "utils.rate_limiting",
+        "description": "utils.rate_limiting",
+        "peekOfCode": "def update_rate_limit_status(headers, pbar=None):\n    remaining_requests, _ = check_rate_limit(headers)\n    if pbar:\n        pbar.set_postfix(rate_limit=remaining_requests, refresh=True)\nclass TokenBucket:\n    def __init__(self, rate, capacity):\n        self.rate = rate\n        self.capacity = capacity\n        self.tokens = capacity\n        self.last_refill = time.time()",
+        "detail": "utils.rate_limiting",
+        "documentation": {}
+    },
+    {
+        "label": "cached",
+        "kind": 2,
+        "importPath": "reporipper",
+        "description": "reporipper",
+        "peekOfCode": "def cached(func):\n    @wraps(func)\n    async def wrapper(*args, **kwargs):\n        # Convert sets to lists in args and kwargs to make them JSON serializable\n        serializable_args = tuple(list(arg) if isinstance(arg, set) else arg for arg in args[1:])\n        serializable_kwargs = {k: (list(v) if isinstance(v, set) else v) for k, v in kwargs.items()}\n        key = json.dumps(serializable_args) + json.dumps(serializable_kwargs)\n        if key in CACHE:\n            return CACHE[key]\n        result = await func(*args, **kwargs)",
+        "detail": "reporipper",
+        "documentation": {}
+    },
+    {
+        "label": "load_exclusion_list",
+        "kind": 2,
+        "importPath": "reporipper",
+        "description": "reporipper",
+        "peekOfCode": "def load_exclusion_list(filename: str) -> Set[str]:\n    if os.path.exists(filename):\n        with open(filename, 'r') as f:\n            return set(line.strip() for line in f if line.strip())\n    return set()\n@cached\nasync def fetch_repo_files(session: aiohttp.ClientSession, repo_full_name: str, exclusion_set: Set[str]) -> Set[str]:\n    url = f\"https://api.github.com/repos/{repo_full_name}/git/trees/main?recursive=1\"\n    async with session.get(url, headers=HEADERS) as response:\n        bucket.consume()",
+        "detail": "reporipper",
+        "documentation": {}
+    },
+    {
+        "label": "parse_arguments",
+        "kind": 2,
+        "importPath": "reporipper",
+        "description": "reporipper",
+        "peekOfCode": "def parse_arguments() -> Namespace:\n    parser = ArgumentParser(description=\"Fetch and save all files from a GitHub repository.\")\n    parser.add_argument(\"repo_url\", help=\"The GitHub repository URL\")\n    parser.add_argument(\"-o\", \"--output\", default=SAVE_DIRECTORY, help=\"The directory to save files to\")\n    parser.add_argument(\"-e\", \"--exclude\", default=\"exclusion_list.txt\", help=\"File with list of paths to exclude\")\n    parser.add_argument(\"-c\", \"--concurrency\", type=int, default=5, help=\"Number of concurrent tasks\")\n    parser.add_argument(\"-d\", \"--dry-run\", action=\"store_true\", help=\"Simulate the process without saving files\")\n    return parser.parse_args()\ndef main():\n    args = parse_arguments()",
+        "detail": "reporipper",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "reporipper",
+        "description": "reporipper",
+        "peekOfCode": "def main():\n    args = parse_arguments()\n    global SAVE_DIRECTORY\n    SAVE_DIRECTORY = args.output\n    global EXCLUSION_SET\n    EXCLUSION_SET = load_exclusion_list(args.exclude)\n    repo_full_name = '/'.join(args.repo_url.rstrip('/').split('/')[-2:])\n    if not EXCLUSION_SET:\n        logger.warning(\"No exclusion list found or it's empty. Skipping exclusion step.\")\n        combined_exclusion_set = set()",
+        "detail": "reporipper",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "reporipper",
+        "description": "reporipper",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nGITHUB_TOKEN = os.getenv(\"GITHUB_TOKEN\")\nSAVE_DIRECTORY = os.getenv('SAVE_DIRECTORY', '.')\nHEADERS = {\"Authorization\": f\"token {GITHUB_TOKEN}\"}\nCACHE = {}\nEXCLUSION_SET: Set[str] = set()\nbucket = TokenBucket(rate=5000, capacity=5000)\ndef cached(func):\n    @wraps(func)\n    async def wrapper(*args, **kwargs):",
+        "detail": "reporipper",
+        "documentation": {}
+    },
+    {
+        "label": "GITHUB_TOKEN",
+        "kind": 5,
+        "importPath": "reporipper",
+        "description": "reporipper",
+        "peekOfCode": "GITHUB_TOKEN = os.getenv(\"GITHUB_TOKEN\")\nSAVE_DIRECTORY = os.getenv('SAVE_DIRECTORY', '.')\nHEADERS = {\"Authorization\": f\"token {GITHUB_TOKEN}\"}\nCACHE = {}\nEXCLUSION_SET: Set[str] = set()\nbucket = TokenBucket(rate=5000, capacity=5000)\ndef cached(func):\n    @wraps(func)\n    async def wrapper(*args, **kwargs):\n        # Convert sets to lists in args and kwargs to make them JSON serializable",
+        "detail": "reporipper",
+        "documentation": {}
+    },
+    {
+        "label": "SAVE_DIRECTORY",
+        "kind": 5,
+        "importPath": "reporipper",
+        "description": "reporipper",
+        "peekOfCode": "SAVE_DIRECTORY = os.getenv('SAVE_DIRECTORY', '.')\nHEADERS = {\"Authorization\": f\"token {GITHUB_TOKEN}\"}\nCACHE = {}\nEXCLUSION_SET: Set[str] = set()\nbucket = TokenBucket(rate=5000, capacity=5000)\ndef cached(func):\n    @wraps(func)\n    async def wrapper(*args, **kwargs):\n        # Convert sets to lists in args and kwargs to make them JSON serializable\n        serializable_args = tuple(list(arg) if isinstance(arg, set) else arg for arg in args[1:])",
+        "detail": "reporipper",
+        "documentation": {}
+    },
+    {
+        "label": "HEADERS",
+        "kind": 5,
+        "importPath": "reporipper",
+        "description": "reporipper",
+        "peekOfCode": "HEADERS = {\"Authorization\": f\"token {GITHUB_TOKEN}\"}\nCACHE = {}\nEXCLUSION_SET: Set[str] = set()\nbucket = TokenBucket(rate=5000, capacity=5000)\ndef cached(func):\n    @wraps(func)\n    async def wrapper(*args, **kwargs):\n        # Convert sets to lists in args and kwargs to make them JSON serializable\n        serializable_args = tuple(list(arg) if isinstance(arg, set) else arg for arg in args[1:])\n        serializable_kwargs = {k: (list(v) if isinstance(v, set) else v) for k, v in kwargs.items()}",
+        "detail": "reporipper",
+        "documentation": {}
+    },
+    {
+        "label": "CACHE",
+        "kind": 5,
+        "importPath": "reporipper",
+        "description": "reporipper",
+        "peekOfCode": "CACHE = {}\nEXCLUSION_SET: Set[str] = set()\nbucket = TokenBucket(rate=5000, capacity=5000)\ndef cached(func):\n    @wraps(func)\n    async def wrapper(*args, **kwargs):\n        # Convert sets to lists in args and kwargs to make them JSON serializable\n        serializable_args = tuple(list(arg) if isinstance(arg, set) else arg for arg in args[1:])\n        serializable_kwargs = {k: (list(v) if isinstance(v, set) else v) for k, v in kwargs.items()}\n        key = json.dumps(serializable_args) + json.dumps(serializable_kwargs)",
+        "detail": "reporipper",
+        "documentation": {}
+    },
+    {
+        "label": "bucket",
+        "kind": 5,
+        "importPath": "reporipper",
+        "description": "reporipper",
+        "peekOfCode": "bucket = TokenBucket(rate=5000, capacity=5000)\ndef cached(func):\n    @wraps(func)\n    async def wrapper(*args, **kwargs):\n        # Convert sets to lists in args and kwargs to make them JSON serializable\n        serializable_args = tuple(list(arg) if isinstance(arg, set) else arg for arg in args[1:])\n        serializable_kwargs = {k: (list(v) if isinstance(v, set) else v) for k, v in kwargs.items()}\n        key = json.dumps(serializable_args) + json.dumps(serializable_kwargs)\n        if key in CACHE:\n            return CACHE[key]",
+        "detail": "reporipper",
+        "documentation": {}
+    }
+]
